@@ -1,0 +1,52 @@
+% !TEX TS-program = pdflatex
+\documentclass[10pt,twocolumn]{article} 
+
+% required packages for Oxy Comps style
+\usepackage{oxycomps} % the main oxycomps style file
+\usepackage{times} % use Times as the default font
+\usepackage[style=numeric,sorting=nyt]{biblatex} % format the bibliography nicely
+
+\usepackage{amsfonts} % provides many math symbols/fonts
+\usepackage{listings} % provides the lstlisting environment
+\usepackage{amssymb} % provides many math symbols/fonts
+\usepackage{graphicx} % allows insertion of grpahics
+\usepackage{hyperref} % creates links within the page and to URLs
+\usepackage{url} % formats URLs properly
+\usepackage{verbatim} % provides the comment environment
+\usepackage{xpatch} % used to patch \textcite
+
+\bibliography{references}
+\DeclareNameAlias{default}{last-first}
+
+\xpatchbibmacro{textcite}
+  {\printnames{labelname}}
+  {\printnames{labelname} (\printfield{year})}
+  {}
+  {}
+
+\pdfinfo{
+    /Title (Writing Your Oxy CS Comps Paper in LaTeX)
+    /Author (Christopher Linscott)
+}
+
+\title{Image Search Within Video Platforms: Is It Possible?}
+
+\author{Christopher Linscott}
+\affiliation{Occidental College}
+\email{clinscott@oxy.edu}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Context}
+
+
+
+\section{Technical Background}
+
+\section{Prior Work}
+
+\printbibliography 
+
+\end{document}
