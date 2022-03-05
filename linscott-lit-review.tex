@@ -4,7 +4,7 @@
 % required packages for Oxy Comps style
 \usepackage{oxycomps} % the main oxycomps style file
 \usepackage{times} % use Times as the default font
-\usepackage[style=numeric,sorting=nyt]{biblatex} % format the bibliography nicely
+\usepackage[style=numeric,sorting=nyt]{biblatex} % format the bibliography nicely 
 
 \usepackage{amsfonts} % provides many math symbols/fonts
 \usepackage{listings} % provides the lstlisting environment
@@ -15,7 +15,7 @@
 \usepackage{verbatim} % provides the comment environment
 \usepackage{xpatch} % used to patch \textcite
 
-\bibliography{references}
+\bibliography{refs.bib}
 \DeclareNameAlias{default}{last-first}
 
 \xpatchbibmacro{textcite}
@@ -25,11 +25,11 @@
   {}
 
 \pdfinfo{
-    /Title (Writing Your Oxy CS Comps Paper in LaTeX)
+    /Title (Image Search In Video Platforms With The Fuzzy C-Means Algorithm)
     /Author (Christopher Linscott)
 }
 
-\title{Image Search Within Video Platforms: Is It Possible?}
+\title{Image Search In Video Platforms With The Fuzzy C-Means Algorithm}
 
 \author{Christopher Linscott}
 \affiliation{Occidental College}
@@ -39,14 +39,39 @@
 
 \maketitle
 
+% Refer to rubic: https://docs.google.com/document/d/1oiXngqxh30ADXVPfOEnNuBNX1DGFmmExI6DoGZNdrs0/edit
+
 \section{Problem Context}
 
+Often, when learning new topics or exploring new areas, one may come across a topic or object they’ve never seen before. Getting more information feels paradoxical, as obtaining further knowledge given only visual context is difficult; in a sense, you “don’t know what you don’t know”. In general, current video recommendation methods rely on textual information about the video using keywords \cite{Stanford2021}. Without knowing the name or a related keyword, one cannot simply search the web in hopes for an answer. Not only does image search help users tell the search engine what they’re looking for (without ambiguity), but image-related search removes the need to annotate images online with keywords as image similarity can be used as a heuristic \cite{Adrakatti2016}. \\
+\indent The solution I propose involves utilizing video platforms like YouTube, as a means to solve this information gap using related videos, while also offering times within videos where the relevant content is found. A user would insert an image of an object in real life or even a drawing (from their lecture notes for example), and my project would return videos with related images either in the thumbnail or the video frames. If related video frames are found within the video, times corresponding to these frames will additionally be returned. \\
+\indent YouTube videos can be broken down into images through both the thumbnail, an image preview of the video content, and the individual frames which make up the same video. With my project, we essentially create "baskets" of videos which relate to each other by visual characteristics (called “features”). Upon inserting an image, finding relevant information means finding the basket of images (that refer to videos or video frames) which relate to our input image by comparing features. By utilizing video frames as opposed to simply other images (like thumbnails), my project speeds up the searching process by returning a time within the video. From an educational perspective, not only does this help students fulfill these information gaps through videos, but it can speed up the studying process as users don’t always have to sift through a video to grab the relevant information.
 
+\section{Technical Background} 
 
-\section{Technical Background}
+Creating baskets of related images and video frames requires using clustering (an unsupervised version of classification). To be more specific, clustering is the “method of segmenting a population into subgroups where members are more similar to each other than to members of other subgroups based on certain observed features” \cite{C3Clustering}. To be kurt, clustering is the methodology of creating subgroups of videos which relate to each other based on characteristics of one another. It’s referenced as unsupervised as the images and video frames we give will not have any pre-existing labels on them; finding datasets large enough, which includes these labels or categories, is a hard task in itself. Our population here will be a collection of images corresponding to objects in the real world, drawings, YouTube thumbnails, and YouTube video frames. Features, in this context, are visual characteristics of these images that may relate to other images. \\
+\indent Fuzzy clustering, a type of clustering, says that a data point (i.e. an image) always resides uniquely inside a cluster (i.e. basket), but that it can reside in more than one cluster based on varying amounts of “belonging” \cite{PrasadClustering}. Each image would have a belongingness metric of some value between 0 and 1 to some number of clusters; you may also see this referenced as a “membership” metric. As images may have multiple components (including text, a background, people, and objects), this is more viable as opposed to a more strict clustering algorithm such as hierarchical clustering (where the baskets may be too small). Similar to k-means clustering, the number of clusters must be specified. For our use case, the specification of our clusters is normal, as we want to know how big or small these “baskets” may end up. Unlike k-means clustering, fuzzy clustering is preferred for images with lots of overlapping \cite{PrasadClustering}, which is exactly what should occur with these different types of images, as the images have related objects, shapes, and backgrounds. \\
+\indent The algorithm used to perform Fuzzy clustering for this project will be the Fuzzy C-Means algorithm, which utilizes this function: \\
+For a datapoint (image) I:
+\[ I(k, m)  =  \sum_{j=1}^{k} \sum_{x_i \in C_j} u_{ij}^{m}(x_i - u_j)^2 \]
+where \(u_{ij}\) is the degree of belongingness of a data point \(x_i \) to a cluster \(C_j \) which is between 0 and 1, \(u_j \) is the center of the cluster, and \(m \) is the fuzzifier (which converts strict into “fuzzy” sets with more blurred lines) \cite{PrasadClustering}. This function uses Euclidean distance, which is why \((x_i - u_j)^2 \) is present. The function takes in two parameters: \(k\), which represents the number of clusters and \(m \), the fuzzifier, which can be adjusted to make stricter or fuzzier clusters. The Fuzzy C-Means algorithm seeks to minimize the function and the Euclidean distance between the given data points and the center of the cluster. By minimizing the distance metric between a cluster’s center and its neighboring related data points, it makes baskets of datapoints (or images) which relate to each other visually, given that the computation of an image's visual characteristics fairly represents its features. It should be noted that we have freedom in how strict it makes these clusters, as a large \(m \) suppresses outliers in datasets, as the higher values of \(m \) allows more objects per cluster (i.e. sharing between clusters) \cite{Schwammle2010}. Whereas, with lower values, we allow less cluster “sharing” (i.e. less images to be partial members in many clusters). To determine the initial centroid (or initial place acting as the center of the cluster) as well as the membership values (overtime) we can solve for the following equations as done in Schwammle’s paper: 
+\[u_j = \frac{\sum_{i=1}^Nu_{ij}^m x_i}{\sum_{i=1}^Nu_{ij}^m}\] 
+
+\[u_j = \frac{1}{\sum_{s=1}^k \frac{(x_i - u_j)^2}{(x_i - u_s)^2} }\] 
+By utilizing these equations, we can determine what clusters an image resides in (and how much it belongs to a given cluster), and recalculate the relative “baskets”. However, we have no way to get the initial data points. \\
+\indent In order to determine information about an image, in processing images and assigning them a belongingness metric, we need to take into account the surroundings, noise, objects, and people in a given image. By assessing these visual characteristics, we can derive a datapoint for a particular image, and utilize the function and algorithms previously discussed. \\
+\indent To do so, we can take inspiration from Kavitha’s fuzzy algorithm, utilized for the classification of satellite images, as follows: F is a satellite image, NB is the natural background, MM includes man-made objects, and NO describes noises \cite{Kavitha2020}.
+\[F(i, j) = NB(i,j) + \sum_{x=1}^{n} MM(i, j) + NO(i, j) \]
+\indent By repurposing this equation to account for an input image (or image in the dataset) to include objects and people, we can effectively begin to determine the data points for a given image. Utilizing this equation referenced above, we can utilize the Fuzzy C-Means algorithm as a means to cluster and determine how strongly a given image belongs to a given number of clusters.
 
 \section{Prior Work}
 
-\printbibliography 
+Many image-related applications have been developed around gathering information. A popular application which has come out is Google Lens, an application which in real time can analyze an image (whether it has text or a given object) and identify the object or text. Furthermore, image-related search applications, such as Google’s reverse image search, are very useful in determining the source of an image or determining similar images based on an input image. In fact, it’s being used often for educational purposes such as with plant identification \cite{Moore2018}. In a similar way to how Google Lens and Google’s reverse image search aims to solve the information gap (given only visual context), my application serves to solve it using related videos as opposed to a purely trained AI model on the classification of objects. \\ 
+\indent To go on, researchers at Stanford have utilized video frames within a given video (along with labeled good and bad thumbnails) to train a convolutional neural network to determine what frames of that video would constitute as a good “thumbnail”, or image preview to capture a user’s attention \cite{Stanford2017}. Extending this idea, we can utilize the video frames in order to gather images to act as “markers” for the videos; when an user-given image matches, it references the video and/or the time within it.\\
+\indent Along with classifying YouTube thumbnails together, neural networks have also proven to be able to learn to cluster YouTube thumbnails together, categorizing them into different categories without the help of tags (i.e. labeled categories on the videos). Utilizing k-means clustering, they were able to compare and determine that a clustering algorithm could categorize videos by their thumbnails as well as YouTube did manually with tags \cite{Stanford2021}. So, with this paper in mind, as opposed to using classification like the first group of Stanford researchers, my project shifted toward using clustering because my datasets are not labeled and labeling data is very tedious. \\
+\indent However, there are many ways (or algorithms) to cluster a dataset, depending on the type of data one is handling. Therefore, analyzing papers which tackled a similar problem led me to Kavitha’s paper, which retrieves images that are relevant to the user given image, for the purposes of getting information that’s useful for natural disaster management. The paper pushes that other image-retrieval algorithms are incomponent in terms of efficiency with clustering images, and that utilizing the Fuzzy characteristic algorithm can achieve great precision with better efficiency \cite{Kavitha2020}. Furthermore, an article about the many methods/algorithms of clustering agreed that Fuzzy algorithms are best for image segmentation which aligns with the arguments of the paper \cite{PrasadClustering}. As my project will involve deriving related images and image segmentation (in order to make the images more meaningful), my project landed on the Fuzzy C-Means Algorithm (as opposed to a K-means clustering) as the resource for clustering my images all together and creating these baskets.
+
+\printbibliography
+
 
 \end{document}
