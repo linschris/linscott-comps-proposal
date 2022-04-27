@@ -83,7 +83,7 @@ Many image-related applications have been developed around gathering information
 \indent 
 Clustering by the features of the convolutional neural network will result in much less noise and more meaningful generated “classes” or categories of the image clusters. If the raw images are small enough, we may be able to do it by individual pixels. However, possible noises present in image and video manipulation may interfere too heavily with this type of clustering. As well as, the number of features extracted by individual pixels may be far too many to be meaningful or considerable. Utilizing K-Means from sklearn (since K-Means and FCM are very similar in implementation and goal), I was able to cluster images by the raw image data of height h (pixels), width w (pixels), and 3 channels (red, green, and blue) as the images were colored. With images of distinctive features, the K-Means algorithm worked well when the object to cluster was alone (see corgi in white background). However, the K-Means algorithm performed horribly when the same object was surrounded by other objects of meaning (such as tree) due to similar colors. Therefore, in the context of image manipulation and colored images, a convolutional neural network can help derive features from images such as edges, shape, position, distribution of colors, and edge orientation (source).
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[scale=0.2]{corgi-white.png}
   \vspace{20px}
@@ -91,7 +91,7 @@ Clustering by the features of the convolutional neural network will result in mu
   \label{corgi:white}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[scale=0.2]{corgi-tree.png}
   \vspace{20px}
@@ -136,7 +136,7 @@ To evaluate an image segmentation algorithm, it requires that we assess the stre
 \indent
 The number of clusters is a defining characteristic in clustering algorithms, but unfortunately a tricky measurement. Therefore, researched and defined methods such as the Elbow Method may provide a way to determine the number of clusters for a given amount of data. Fuzzy C-Means and K-Means are both computationally inefficient at O(n) and O(knt) respectively (Source), and therefore utilizing this can save on computational costs and determine how many clusters are needed to have enough variation in one computation. The idea is that the “elbow” or “knee” created by the graph acts as a point “where diminishing returns are no longer worth the additional cost” (Wikipedia). As with the examples, the respective “elbow” resides at 3 for the corgi tree photo and at 2 (or 3), up to interpretation.
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[scale=0.15]{corgi-tree-elbow.png}
   \vspace{20px}
@@ -144,9 +144,9 @@ The number of clusters is a defining characteristic in clustering algorithms, bu
   \label{ctree:elbow}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
-  \includegraphics[scale=0.2]{corgi-white-elbow.png}
+  \includegraphics[scale=0.15]{corgi-white-elbow.png}
   \vspace{20px}
   \caption{The elbow method applied to the original corgi in white background image. Notice the ”elbow” at 2 (or 4) clusters; this highlights how with less color density, less clusters are needed. As well as, this highlights an ambiguity issue with reading the results of the Elbow Method.}
   \label{cwhite:elbow}
