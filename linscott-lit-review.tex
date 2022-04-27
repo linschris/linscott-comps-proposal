@@ -14,11 +14,10 @@
 \usepackage{url} % formats URLs properly
 \usepackage{verbatim} % provides the comment environment
 \usepackage{xpatch} % used to patch \textcite
-\usepackage{algpseudocode} % used for algorithm psuedocode
 \usepackage{algorithm}
+\usepackage{algorithmic} % used for psuedocode
 
-\graphicspath{{./images/}}
-
+\graphicspath{ {./images/} }
 \bibliography{refs.bib}
 \DeclareNameAlias{default}{last-first}
 
@@ -43,7 +42,7 @@
 
 \maketitle
 
-% Refer to rubric: https://docs.google.com/document/d/1oiXngqxh30ADXVPfOEnNuBNX1DGFmmExI6DoGZNdrs0/edit
+% Refer to rubic: https://docs.google.com/document/d/1oiXngqxh30ADXVPfOEnNuBNX1DGFmmExI6DoGZNdrs0/edit
 
 \section{Problem Context}
 
@@ -79,50 +78,53 @@ Many image-related applications have been developed around gathering information
 
 \subsection {Approach}
 
-From a high level standpoint, the approach involves taking an input image, running it through a convolutional neural network (CNN), grabbing the corresponding features derived from the CNN, and utilizing these as data points for the clustering algorithm, Fuzzy C Means (FCM). The clustering algorithm will take these data points and create baskets of videos based on similar features, thereby creating clusters of related videos which are similar to each other by visual characteristics. \\
-\indent Clustering by the features of the convolutional neural network will result in much less noise and more meaningful generated “classes” or categories of the image clusters. If the raw images are small enough, we may be able to do it by individual pixels. However, possible noises present in image and video manipulation may interfere too heavily with this type of clustering. As well as, the number of features extracted by individual pixels may be far too many to be meaningful or considerable. Utilizing K-Means from sklearn (since K-Means and FCM are very similar in implementation and goal), I was able to cluster images by the raw image data of height h (pixels), width w (pixels), and 3 channels (red, green, and blue) as the images were colored. With images of distinctive features, the K-Means algorithm worked well when the object to cluster was alone (see Figure \ref{corgi:white}). However, the K-Means algorithm performed horribly when the same object was surrounded by other objects of meaning (such as tree) due to similar colors (see Figure \ref{corgi:tree}). Therefore, in the context of image manipulation and colored images, a convolutional neural network can help derive features from images such as edges, shape, position, distribution of colors, and edge orientation (source). \\
-\begin{figure}[h]
+\indent From a high level standpoint, the approach involves taking an input image, running it through a convolutional neural network (CNN), grabbing the corresponding features derived from the CNN, and utilizing these as data points for the clustering algorithm, Fuzzy C Means (FCM). The clustering algorithm will take these data points and create baskets of videos based on similar features, thereby creating clusters of related videos which are similar to each other by visual characteristics. 
+\\
+\indent 
+Clustering by the features of the convolutional neural network will result in much less noise and more meaningful generated “classes” or categories of the image clusters. If the raw images are small enough, we may be able to do it by individual pixels. However, possible noises present in image and video manipulation may interfere too heavily with this type of clustering. As well as, the number of features extracted by individual pixels may be far too many to be meaningful or considerable. Utilizing K-Means from sklearn (since K-Means and FCM are very similar in implementation and goal), I was able to cluster images by the raw image data of height h (pixels), width w (pixels), and 3 channels (red, green, and blue) as the images were colored. With images of distinctive features, the K-Means algorithm worked well when the object to cluster was alone (see corgi in white background). However, the K-Means algorithm performed horribly when the same object was surrounded by other objects of meaning (such as tree) due to similar colors. Therefore, in the context of image manipulation and colored images, a convolutional neural network can help derive features from images such as edges, shape, position, distribution of colors, and edge orientation (source).
+
+\begin{figure}
   \centering
-  \includegraphics[scale=0.2] {corgi_white}
+  \includegraphics[scale=0.2]{corgi-white.png}
   \vspace{20px}
-  \caption{The K-Means clustering algorithm (f=2 for Fuzzy C Means) applied to an image of a Corgi in a white background.}
+  \caption{The K-Means clustering algorithm (f=2 for Fuzzy C Means) applied to an image of a Corgi in a white back-ground.}
   \label{corgi:white}
 \end{figure}
-\begin{figure}[h]
+
+\begin{figure}
   \centering
-  \includegraphics[scale=0.2] {corgi_tree}
+  \includegraphics[scale=0.2]{corgi-tree.png}
   \vspace{20px}
   \caption{The same clustering algorithm applied to an image of a corgi on a tree. Note how pixels (i.e. colors) of the tree and Corgi get grouped together.}
   \label{corgi:tree}
 \end{figure}
-\indent 
-With this in mind, I want to utilize a CNN that takes an input image of dimensions (h, w, 3) and returns features {f1, …, fn} which will act as data points of dimension n for the Fuzzy C Means Algorithm. The convolutional neural network will have several convolutional layers which have 3 individual kernels underneath (for each of the different color channels red, green, and blue). These kernels are represented by a 3x3 matrix of either set values (Sobel filters), randomly initialized, or zero initialized values. The 2-D matrices are mapped over the image by computing a given value for a given set of 9 pixels for one channel. The values generated by this multiplication represent the activation (i.e. if it detects a given feature, such as an edge). However, an activation of 40 versus -10 can be seen as ambiguous. Therefore, upon the outputs of the kernels (called a feature map), they will be inserted into a ReLU activation function, which computes the activation (i.e. if the feature is recognized) based on if the value is positive (activates) or negative (doesn’t activate). After this convolutional layer and input through the ReLU function, the values are now simply activations or non activations. Therefore, we place these activations through a max pooling layer, which in short allows for “translational invariance”, or the idea that if the image is rotated, sized differently, or viewed in different lighting (source), that the object will still be recognized; this is necessary in the previously stated context of image manipulation. The max pooling layers will summarize the statistics of nearby locations, by also utilizing a filter of size 2x2 or 3x3. In short, the pooling layer will take the input from the previous layer and condense by selectively looking at a grid of pixels (the same size as the filter) and grabbing the maximum value of those pixels as its output. By reducing the size of input entering the next layer, it reduces the computational load, and by using max pooling (or grabbing the highest values only), it highlights the parts of the feature which most align with the given feature the filter is trying to extract. As well as, by max pooling, this reduces overfitting (since we only look at general features by condensing rather than at outliers). The idea with all of these layers is to create virtually many “feature” detectors which can derive features while reducing computational complexity, noise, and overfitting. The idea behind the convolutional neural network will be to have the convolutional and pooling layer interleaved, so that the convolutional layer uses convolution to find the filter and the pooling layer uses pooling to effectively “highlight” the activation it finds and reducing the size of the input before it reaches the inner layers (where often you’ll be looking at smaller parts of an image). In total, this layout should allow us to find, compute, and return an array of features which can therefore be clustered on by a clustering algorithm such as K-Means or Fuzzy C-Means (as will be discussed below). 
-\\
+
+With this in mind, I want to utilize a CNN that takes an input image of dimensions (h, w, 3) and returns features {f1, …, fn} which will act as data points of dimension n for the Fuzzy C Means Algorithm. The convolutional neural network will have several convolutional layers which have 3 individual kernels underneath (for each of the different color channels red, green, and blue). These kernels are represented by a 3x3 matrix of either set values (Sobel filters), randomly initialized, or zero initialized values. The 2-D matrices are mapped over the image by computing a given value for a given set of 9 pixels for one channel. The values generated by this multiplication represent the activation (i.e. if it detects a given feature, such as an edge). However, an activation of 40 versus -10 can be seen as ambiguous. Therefore, upon the outputs of the kernels (called a feature map), they will be inserted into a ReLU activation function, which computes the activation (i.e. if the feature is recognized) based on if the value is positive (activates) or negative (doesn’t activate). After this convolutional layer and input through the ReLU function, the values are now simply activations or non activations. Therefore, we place these activations through a max pooling layer, which in short allows for “translational invariance”, or the idea that if the image is rotated, sized differently, or viewed in different lighting (source), that the object will still be recognized; this is necessary in the previously stated context of image manipulation. The max pooling layers will summarize the statistics of nearby locations, by also utilizing a filter of size 2x2 or 3x3. In short, the pooling layer will take the input from the previous layer and condense by selectively looking at a grid of pixels (the same size as the filter) and grabbing the maximum value of those pixels as its output. By reducing the size of input entering the next layer, it reduces the computational load, and by using max pooling (or grabbing the highest values only), it highlights the parts of the feature which most align with the given feature the filter is trying to extract. As well as, by max pooling, this reduces overfitting (since we only look at general features by condensing rather than at outliers). The idea with all of these layers is to create virtually many “feature” detectors which can derive features while reducing computational complexity, noise, and overfitting. The idea behind the convolutional neural network will be to have the convolutional and pooling layer interleaved, so that the convolutional layer uses convolution to find the filter and the pooling layer uses pooling to effectively “highlight” the activation it finds and reducing the size of the input before it reaches the inner layers (where often you’ll be looking at smaller parts of an image). In total, this layout should allow us to find, compute, and return an array of features which can therefore be clustered on by a clustering algorithm such as K-Means or Fuzzy C-Means (as will be discussed below). \\
+
+
 \indent Given the features from the CNN as an array of features {f1, …, fn}, the Fuzzy C-Means algorithm will look at these as a singular datapoint of dimension (or size) n. The main idea behind the FCM algorithm is given all the data points and a fuzzifier (a number denoting how hard or soft the clustering is), to compute suitable centers of groups of videos/video frames based on a common feature or group of features that are similar between them. The output will be the positions of the centers of the centroids, and a corresponding table of the images and their corresponding clusters denoted by a number j. To compute these centers, we’ll use the Fuzzy C-Means algorithm with the following pseudocode:
-\begin {algorithm}
-\caption {Fuzzy C Means} \label {algo}
-\begin {algorithmic}[1]
-	\State $f \gets  \, $4
-%	\State $data_points \gets [f_1, f_2, …, f_n]
-%	\State $centroids \gets [[0.1, 0.4, …, 0.05], …, k] 
-	\State $notDone \gets  \, $False
-	\While {notDone}:
-		\State Calculate new centroid positions based on membership values of data points
-		\State Recalculate the new membership values based on these new centroid positions compared to old ones
-		\State Calculate diff to be the difference between the original centroid positions and new centroid positions
-		%\If $diff <= \epsilon$
-		%	\break
+
+% \begin{algorithm}
+	% \State $f \gets $4
+	% \State $data_points \gets [f_1, f_2, …, f_n]
+	% \State $centroids \gets [[0.1, 0.4, …, 0.05], …, k] 
+	% \State $diff \gets $1
+	% \While diff:
+	% \State Calculate new centroid positions based on membership values of data_points
+	% \State Recalculate the new membership values based on these new centroid positions compared to old ones
+	% \State Calculate diff to be the difference between the original centroid position and new centroid position
+	% \State If the diff is large enough, break
+	% \EndWhile
 	
-	\EndWhile
-	(Optional) Decide on a primary cluster for each datapoint depending on the largest membership it has
+	% (Optional) Decide on a primary cluster for each datapoint depending on the largest membership it has
 	
-	 centroid positions datapoint and corresponding clusters
-\end{algorithmic}
-\end{algorithm}
-To determine the new centroid positions, it involves calculating the Euclidean distance between the datapoint and a given cluster. 
+	% \Returns centroid positions, datapoint and corresponding clusters
+% \end{algorithm}
+
+To determine the new centroid positions, it involves calculating the Euclidean distance between the datapoint and a given cluster.
 \\
-\indent 
-After these clusters have been computed, now the algorithm is set and ready to be tested. Placing a given image through the CNN gives us a relevant datapoint. Using this datapoint, we can determine initially what basket to check, as well as other viable options in order of membership value. Based on the data points distance to other data points, these corresponding images and video IDs will be returned first (since they are most similar in terms of visual characteristics). The progression of “relevance” will be determined by if the primary clusters are the same or not and then the corresponding distance to that datapoint. By computing this, we’ll get a list of videoIDs and their corresponding relevance depending on these factors. Much like Google’s search algorithm, this will mitigate the amount of time it takes for the user to find a relevant video.
+\indent After these clusters have been computed, now the algorithm is set and ready to be tested. Placing a given image through the CNN gives us a relevant datapoint. Using this datapoint, we can determine initially what basket to check, as well as other viable options in order of membership value. Based on the data points distance to other data points, these corresponding images and video IDs will be returned first (since they are most similar in terms of visual characteristics). The progression of “relevance” will be determined by if the primary clusters are the same or not and then the corresponding distance to that datapoint. By computing this, we’ll get a list of videoIDs and their corresponding relevance depending on these factors. Much like Google’s search algorithm, this will mitigate the amount of time it takes for the user to find a relevant video.
+
 
 \section{Evaluation}
 
@@ -133,33 +135,28 @@ To evaluate an image segmentation algorithm, it requires that we assess the stre
 \\
 \indent
 The number of clusters is a defining characteristic in clustering algorithms, but unfortunately a tricky measurement. Therefore, researched and defined methods such as the Elbow Method may provide a way to determine the number of clusters for a given amount of data. Fuzzy C-Means and K-Means are both computationally inefficient at O(n) and O(knt) respectively (Source), and therefore utilizing this can save on computational costs and determine how many clusters are needed to have enough variation in one computation. The idea is that the “elbow” or “knee” created by the graph acts as a point “where diminishing returns are no longer worth the additional cost” (Wikipedia). As with the examples, the respective “elbow” resides at 3 for the corgi tree photo and at 2 (or 3), up to interpretation.
-\begin{figure}[h]
+
+\begin{figure}
   \centering
-  \includegraphics[scale=0.3] {corgi_tree_elbow}
+  \includegraphics[scale=0.15]{corgi-tree-elbow.png}
   \vspace{20px}
-  \caption{The elbow method applied to the original corgi in tree image. Notice the "elbow" at 3 clusters.}
+  \caption{The elbow method applied to the original corgi in tree image. Notice the ”elbow” at 3 clusters.}
   \label{ctree:elbow}
 \end{figure}
-\begin{figure}[h]
+
+\begin{figure}
   \centering
-  \includegraphics[scale=0.3] {corgi_white_elbow}
+  \includegraphics[scale=0.2]{corgi-white-elbow.png}
   \vspace{20px}
-  \caption{The elbow method applied to the original corgi in white background image. Notice the "elbow" at 2 (or 4) clusters; this highlights how with less color density, less clusters are needed. As well as, this highlights an ambiguity issue with reading the results of the Elbow Method.}
+  \caption{The elbow method applied to the original corgi in white background image. Notice the ”elbow” at 2 (or 4) clusters; this highlights how with less color density, less clusters are needed. As well as, this highlights an ambiguity issue with reading the results of the Elbow Method.}
   \label{cwhite:elbow}
 \end{figure}
-\\
-\indent
-If we want to evaluate the strength of these clusters, there are several methods, but I propose utilizing combinations of comparisons between the prediction and ground truth such as Intersection-over-Union and a Confusion Matrix as these are not only widely used representations (making them easy for others to evaluate themselves based on the results) (Mittal), but they are not mathematically difficult to represent nor compute. Not to mention, it’s very easy to compare as we’re simply comparing pixel-to-pixel for clusters (as we’ll know all the pixels and their clusters given our methods) as opposed to instance segmentation which requires identifying the objects/classes.
+
+
+\indent If we want to evaluate the strength of these clusters, there are several methods, but I propose utilizing combinations of comparisons between the prediction and ground truth such as Intersection-over-Union and a Confusion Matrix as these are not only widely used representations (making them easy for others to evaluate themselves based on the results) (Mittal), but they are not mathematically difficult to represent nor compute. Not to mention, it’s very easy to compare as we’re simply comparing pixel-to-pixel for clusters (as we’ll know all the pixels and their clusters given our methods) as opposed to instance segmentation which requires identifying the objects/classes.
 A confusion matrix consists of representing the accuracy, precision, and recall based on storing the true values (true positive/negative) and negative values (false positive/negative) in a 2x2 matrix (Source). By utilizing formulas for accuracy, precision, and recall, we can define how accurate versus precise our clustering may be in relation to human judgment (Source). Rather than having to ask human judges to define the accuracy or even the cluster for us, we can determine how well it predicts the ground truth in comparison to previously human-segmented images. In turn, our evaluation can determine how strong the clustering algorithm can group similar features (and therefore similar videos) together without having to ask for human judgment.
 \\
-\indent
-	While the clustering algorithm may be solid for determining images of related visual similarity, the last question to ask is whether these clustering algorithms lead to related videos (of most importantly related content). As computers cannot evaluate the similarity between videos based on content, my plan is to ask others to test the program with test images of their own (and my own) and determine whether the related videos are helpful or not.
-
-
-
-
-
-
+\indent While the clustering algorithm may be solid for determining images of related visual similarity, the last question to ask is whether these clustering algorithms lead to related videos (of most importantly related content). As computers cannot evaluate the similarity between videos based on content, my plan is to ask others to test the program with test images of their own (and my own) and determine whether the related videos are helpful or not.
 
 
 
