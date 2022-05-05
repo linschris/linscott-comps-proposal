@@ -1,4 +1,4 @@
-# Linscott, Christopher - "Lit" Review
+# Linscott, Christopher - COMPS Proposal (Derived from original lit review).
 
 ## Why the README?
 
