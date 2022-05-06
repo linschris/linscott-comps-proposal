@@ -1,4 +1,4 @@
-# Linscott, Christopher - "Lit" Review
+# Linscott, Christopher - COMPS Proposal (Derived from original lit review).
 
 ## Why the README?
 
@@ -12,3 +12,5 @@ So, if you want to see the bibliography (without having to go to refs.bib):
 2. Click on my file: __linscott-lit-review.tex__
 3. Hit `Recompile` (just as a check).
 4. Read with the built-in viewer!
+
+Do this only if the MakeFile is not working for you as well.
